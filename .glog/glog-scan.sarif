@@ -12,18 +12,6 @@
           "informationUri": "https://www.glog.ai",
           "rules": [
             {
-              "id": "fa710588-1c9f-3f06-905b-f25ff657576e",
-              "help": {
-                "text": "",
-                "markdown": "## Description\n\nIn C++ programming, the vulnerability \"Avoid Using Non-Cryptographic or Weak Random Number Generators\" refers to the use of random number generators that are not cryptographically secure. This can lead to predictable values being generated, which can be exploited by an attacker to predict future values and compromise the security of the system.\n\nIn the given code snippet, `std::shuffle` is used with a potentially weak random number generator `gen`. If `gen` is not a cryptographically secure random number generator, it can lead to this vulnerability.\n\n## Mitigation Advice\n\nTo mitigate this vulnerability, use a cryptographically secure random number generator. In C++, this can be achieved using the `<random>` library's `std::random_device` or other cryptographic libraries like OpenSSL's random number generator.\n\n## Source Code Fix Recommendation\n\nHere is a recommended fix for the given code snippet:\n\n```cpp\n#include <random>\n#include <algorithm>\n\n// ...\n\nstd::random_device rd;\nstd::mt19937 g(rd());\n\nstd::shuffle(block_ranks, block_ranks + items_per_block, g);\n```\n\nIn this fix, `std::random_device` is used to seed the Mersenne Twister engine `std::mt19937`, which is a cryptographically secure random number generator. This generator is then used with `std::shuffle`.\n\n## Library Dependencies\n\nThe code example requires the following library dependencies:\n\n- `<random>`: For `std::random_device` and `std::mt19937`.\n- `<algorithm>`: For `std::shuffle`.\n\n## References\n\n- [CWE-338: Use of Cryptographically Weak PRNG](https://cwe.mitre.org/data/definitions/338.html)"
-              },
-              "properties": {
-                "tags": [
-                  "DS148264"
-                ]
-              }
-            },
-            {
               "id": "2099eddc-bda7-30a2-8d27-561613ceb628",
               "help": {
                 "text": "",
@@ -44,42 +32,6 @@
               "properties": {
                 "tags": [
                   "DS148264"
-                ]
-              }
-            },
-            {
-              "id": "cad91462-e68d-3712-bd9a-5a49f5374c04",
-              "help": {
-                "text": "",
-                "markdown": "This finding is classified as a genuine vulnerability because the analysis identified a risk of undefined behavior due to possible overlap between the source and destination memory regions in the memory copy operation. The destination and source may refer to overlapping memory, as indicated by the dataflow analysis. Additionally, there is a risk that the source pointer could be null at runtime, as there is no prior check ensuring it is non-null. The operation does not include any explicit null-termination or bounds checks, and the function is flagged as high risk by the analysis verdict. These factors together indicate a real risk of undefined behavior or memory corruption.\n\n## In Context Remediation\nTo remediate the risk of undefined behavior due to possible overlapping memory regions, ensure that the source and destination buffers do not overlap before performing the memory copy. If overlap is possible, use `memmove` instead of `memcpy`, as `memmove` is safe for overlapping regions. Additionally, check that the source pointer is not null before copying.\n\nExample fix:\n\n```cpp\nif (word_buff != nullptr && &key != word_buff) {\n    memcpy(&key, word_buff, sizeof(K));\n} else if (word_buff != nullptr) {\n    // If overlap is possible, use memmove\n    memmove(&key, word_buff, sizeof(K));\n}\n```\n\nThis ensures that the copy is only performed when the source is not null and uses the appropriate function if overlap is detected.\n\n## References\n- [OWASP C-Based Toolchain Hardening Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/C-Based_Toolchain_Hardening_Cheat_Sheet.html)\n- [CWE-119: Improper Restriction of Operations within the Bounds of a Memory Buffer](https://cwe.mitre.org/data/definitions/119.html)\n- [CWE-120: Buffer Copy without Checking Size of Input ('Classic Buffer Overflow')](https://cwe.mitre.org/data/definitions/120.html)\n- [CWE-787: Out-of-bounds Write](https://cwe.mitre.org/data/definitions/787.html)\n- [OWASP Buffer Overflow](https://owasp.org/www-community/vulnerabilities/Buffer_Overflow)\n\n___\n"
-              },
-              "properties": {
-                "tags": [
-                  "DS121708"
-                ]
-              }
-            },
-            {
-              "id": "24f6eea9-fd43-3e08-952a-a68618e742b1",
-              "help": {
-                "text": "",
-                "markdown": "## Description\n\nThe `memcpy` function in C++ is used to copy a block of memory from one location to another. This function is vulnerable to buffer overflow attacks if the size of the data being copied is larger than the size of the destination buffer. In the provided code snippet, `memcpy(&retval, &retval_bits, sizeof(T))`, if the size of `retval_bits` is larger than the size of `retval`, it can lead to a buffer overflow.\n\nBuffer overflow vulnerabilities can lead to various security issues such as data corruption, crashes, and code execution. An attacker can exploit this vulnerability to execute arbitrary code or cause a denial of service.\n\n## Mitigation Advice\n\nTo mitigate this vulnerability, you should always ensure that the destination buffer is large enough to hold the data being copied. This can be done by checking the size of the data and the size of the buffer before calling `memcpy`.\n\nAdditionally, consider using safer alternatives to `memcpy` such as `strncpy` or `memcpy_s` which include a length parameter to prevent buffer overflows.\n\n## Source Code Fix Recommendation\n\nHere is a safer version of the code snippet using `memcpy_s`:\n\n```cpp\nerrno_t err = memcpy_s(&retval, sizeof(retval), &retval_bits, sizeof(retval_bits));\nif (err)\n{\n    // Handle error\n}\n```\n\nIn this version, `memcpy_s` checks the size of the destination buffer (`sizeof(retval)`) against the size of the source (`sizeof(retval_bits)`) and returns an error if the source is larger than the destination.\n\n## Library Dependencies\n\nThe `memcpy` function is part of the C Standard Library, so no additional libraries are needed for the code to execute properly.\n\n## OWASP and CWE Links\n\n- [OWASP C++ Secure Coding Practices](https://cheatsheetseries.owasp.org/cheatsheets/C-Based_Toolchain_Hardening_Cheat_Sheet.html)\n- [CWE-120: Buffer Copy without Checking Size of Input ('Classic Buffer Overflow')](https://cwe.mitre.org/data/definitions/120.html)"
-              },
-              "properties": {
-                "tags": [
-                  "DS121708"
-                ]
-              }
-            },
-            {
-              "id": "3dfb6ffa-523f-3a97-a2f9-92c35a976262",
-              "help": {
-                "text": "",
-                "markdown": "## Description\n\nThe `memcpy` function in C++ is used to copy a block of memory from one location to another. This function is vulnerable to buffer overflow attacks if the size of the data being copied is larger than the size of the destination buffer. In the provided code snippet, `memcpy(&retval, &retval_bits, sizeof(T))`, if the size of `retval_bits` is larger than the size of `retval`, it can lead to a buffer overflow.\n\nBuffer overflow vulnerabilities can lead to various security issues such as data corruption, crashes, and code execution. An attacker can exploit this vulnerability to execute arbitrary code or cause a denial of service.\n\n## Mitigation Advice\n\nTo mitigate this vulnerability, you should always ensure that the destination buffer is large enough to hold the data being copied. This can be done by checking the size of the data and the size of the buffer before calling `memcpy`.\n\nAdditionally, consider using safer alternatives to `memcpy` such as `strncpy` or `memcpy_s` which include a length parameter to prevent buffer overflows.\n\n## Source Code Fix Recommendation\n\nHere is a safer version of the code snippet using `memcpy_s`:\n\n```cpp\nerrno_t err = memcpy_s(&retval, sizeof(retval), &retval_bits, sizeof(retval_bits));\nif (err)\n{\n    // Handle error\n}\n```\n\nIn this version, `memcpy_s` checks the size of the destination buffer (`sizeof(retval)`) against the size of the source (`sizeof(retval_bits)`) and returns an error if the source is larger than the destination.\n\n## Library Dependencies\n\nThe `memcpy` function is part of the C Standard Library, so no additional libraries are needed for the code to execute properly.\n\n## OWASP and CWE Links\n\n- [OWASP C++ Secure Coding Practices](https://cheatsheetseries.owasp.org/cheatsheets/C-Based_Toolchain_Hardening_Cheat_Sheet.html)\n- [CWE-120: Buffer Copy without Checking Size of Input ('Classic Buffer Overflow')](https://cwe.mitre.org/data/definitions/120.html)"
-              },
-              "properties": {
-                "tags": [
-                  "DS121708"
                 ]
               }
             },
@@ -106,6 +58,54 @@
                   "DS148264"
                 ]
               }
+            },
+            {
+              "id": "3dfb6ffa-523f-3a97-a2f9-92c35a976262",
+              "help": {
+                "text": "",
+                "markdown": "## Description\n\nThe `memcpy` function in C++ is used to copy a block of memory from one location to another. This function is vulnerable to buffer overflow attacks if the size of the data being copied is larger than the size of the destination buffer. In the provided code snippet, `memcpy(&retval, &retval_bits, sizeof(T))`, if the size of `retval_bits` is larger than the size of `retval`, it can lead to a buffer overflow.\n\nBuffer overflow vulnerabilities can lead to various security issues such as data corruption, crashes, and code execution. An attacker can exploit this vulnerability to execute arbitrary code or cause a denial of service.\n\n## Mitigation Advice\n\nTo mitigate this vulnerability, you should always ensure that the destination buffer is large enough to hold the data being copied. This can be done by checking the size of the data and the size of the buffer before calling `memcpy`.\n\nAdditionally, consider using safer alternatives to `memcpy` such as `strncpy` or `memcpy_s` which include a length parameter to prevent buffer overflows.\n\n## Source Code Fix Recommendation\n\nHere is a safer version of the code snippet using `memcpy_s`:\n\n```cpp\nerrno_t err = memcpy_s(&retval, sizeof(retval), &retval_bits, sizeof(retval_bits));\nif (err)\n{\n    // Handle error\n}\n```\n\nIn this version, `memcpy_s` checks the size of the destination buffer (`sizeof(retval)`) against the size of the source (`sizeof(retval_bits)`) and returns an error if the source is larger than the destination.\n\n## Library Dependencies\n\nThe `memcpy` function is part of the C Standard Library, so no additional libraries are needed for the code to execute properly.\n\n## OWASP and CWE Links\n\n- [OWASP C++ Secure Coding Practices](https://cheatsheetseries.owasp.org/cheatsheets/C-Based_Toolchain_Hardening_Cheat_Sheet.html)\n- [CWE-120: Buffer Copy without Checking Size of Input ('Classic Buffer Overflow')](https://cwe.mitre.org/data/definitions/120.html)"
+              },
+              "properties": {
+                "tags": [
+                  "DS121708"
+                ]
+              }
+            },
+            {
+              "id": "24f6eea9-fd43-3e08-952a-a68618e742b1",
+              "help": {
+                "text": "",
+                "markdown": "## Description\n\nThe `memcpy` function in C++ is used to copy a block of memory from one location to another. This function is vulnerable to buffer overflow attacks if the size of the data being copied is larger than the size of the destination buffer. In the provided code snippet, `memcpy(&retval, &retval_bits, sizeof(T))`, if the size of `retval_bits` is larger than the size of `retval`, it can lead to a buffer overflow.\n\nBuffer overflow vulnerabilities can lead to various security issues such as data corruption, crashes, and code execution. An attacker can exploit this vulnerability to execute arbitrary code or cause a denial of service.\n\n## Mitigation Advice\n\nTo mitigate this vulnerability, you should always ensure that the destination buffer is large enough to hold the data being copied. This can be done by checking the size of the data and the size of the buffer before calling `memcpy`.\n\nAdditionally, consider using safer alternatives to `memcpy` such as `strncpy` or `memcpy_s` which include a length parameter to prevent buffer overflows.\n\n## Source Code Fix Recommendation\n\nHere is a safer version of the code snippet using `memcpy_s`:\n\n```cpp\nerrno_t err = memcpy_s(&retval, sizeof(retval), &retval_bits, sizeof(retval_bits));\nif (err)\n{\n    // Handle error\n}\n```\n\nIn this version, `memcpy_s` checks the size of the destination buffer (`sizeof(retval)`) against the size of the source (`sizeof(retval_bits)`) and returns an error if the source is larger than the destination.\n\n## Library Dependencies\n\nThe `memcpy` function is part of the C Standard Library, so no additional libraries are needed for the code to execute properly.\n\n## OWASP and CWE Links\n\n- [OWASP C++ Secure Coding Practices](https://cheatsheetseries.owasp.org/cheatsheets/C-Based_Toolchain_Hardening_Cheat_Sheet.html)\n- [CWE-120: Buffer Copy without Checking Size of Input ('Classic Buffer Overflow')](https://cwe.mitre.org/data/definitions/120.html)"
+              },
+              "properties": {
+                "tags": [
+                  "DS121708"
+                ]
+              }
+            },
+            {
+              "id": "fa710588-1c9f-3f06-905b-f25ff657576e",
+              "help": {
+                "text": "",
+                "markdown": "## Description\n\nIn C++ programming, the vulnerability \"Avoid Using Non-Cryptographic or Weak Random Number Generators\" refers to the use of random number generators that are not cryptographically secure. This can lead to predictable values being generated, which can be exploited by an attacker to predict future values and compromise the security of the system.\n\nIn the given code snippet, `std::shuffle` is used with a potentially weak random number generator `gen`. If `gen` is not a cryptographically secure random number generator, it can lead to this vulnerability.\n\n## Mitigation Advice\n\nTo mitigate this vulnerability, use a cryptographically secure random number generator. In C++, this can be achieved using the `<random>` library's `std::random_device` or other cryptographic libraries like OpenSSL's random number generator.\n\n## Source Code Fix Recommendation\n\nHere is a recommended fix for the given code snippet:\n\n```cpp\n#include <random>\n#include <algorithm>\n\n// ...\n\nstd::random_device rd;\nstd::mt19937 g(rd());\n\nstd::shuffle(block_ranks, block_ranks + items_per_block, g);\n```\n\nIn this fix, `std::random_device` is used to seed the Mersenne Twister engine `std::mt19937`, which is a cryptographically secure random number generator. This generator is then used with `std::shuffle`.\n\n## Library Dependencies\n\nThe code example requires the following library dependencies:\n\n- `<random>`: For `std::random_device` and `std::mt19937`.\n- `<algorithm>`: For `std::shuffle`.\n\n## References\n\n- [CWE-338: Use of Cryptographically Weak PRNG](https://cwe.mitre.org/data/definitions/338.html)"
+              },
+              "properties": {
+                "tags": [
+                  "DS148264"
+                ]
+              }
+            },
+            {
+              "id": "cad91462-e68d-3712-bd9a-5a49f5374c04",
+              "help": {
+                "text": "",
+                "markdown": "This finding is classified as a genuine vulnerability because the analysis identified a risk of undefined behavior due to possible overlap between the source and destination memory regions in the memory copy operation. The destination and source may refer to overlapping memory, as indicated by the dataflow analysis. Additionally, there is no evidence of a guard to prevent this, and the source pointer may also be null, which could lead to a crash or further undefined behavior. The classification and verdict both indicate a high-confidence issue that should be addressed. The risk is not mitigated by any explicit checks or safe usage patterns in the code.\n\n## In Context Remediation 1\nBefore performing the memory copy, ensure that the source and destination memory regions do not overlap. Add a runtime check to verify that the memory ranges are either completely separate or use a function that safely handles overlapping regions.\n\n```cpp\nif ((char*)&key + sizeof(K) <= (char*)word_buff || (char*)word_buff + sizeof(K) <= (char*)&key) {\n    memcpy(&key, word_buff, sizeof(K));\n} else {\n    // Handle overlap safely, e.g., use memmove or log an error\n}\n```\n\n\n## In Context Remediation 2\nIf overlapping memory regions are possible, replace the memory copy operation with a function that is defined for overlapping regions, such as `memmove`.\n\n```cpp\nmemmove(&key, word_buff, sizeof(K));\n```\n\n## References\n- [OWASP C-Based Toolchain Hardening Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/C-Based_Toolchain_Hardening_Cheat_Sheet.html)\n- [OWASP Buffer Overflow](https://owasp.org/www-community/vulnerabilities/Buffer_Overflow)\n- [CWE-119: Improper Restriction of Operations within the Bounds of a Memory Buffer](https://cwe.mitre.org/data/definitions/119.html)\n- [CWE-120: Buffer Copy without Checking Size of Input ('Classic Buffer Overflow')](https://cwe.mitre.org/data/definitions/120.html)\n- [CWE-787: Out-of-bounds Write](https://cwe.mitre.org/data/definitions/787.html)\n\n\n___\n"
+              },
+              "properties": {
+                "tags": [
+                  "DS121708"
+                ]
+              }
             }
           ],
           "language": "en-US",
@@ -118,46 +118,6 @@
       },
       "language": "en-US",
       "results": [
-        {
-          "ruleId": "fa710588-1c9f-3f06-905b-f25ff657576e",
-          "kind": "fail",
-          "level": "error",
-          "message": {
-            "text": "Avoid Using Non-Cryptographic or Weak Random Number Generators"
-          },
-          "locations": [
-            {
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": "benchmark/benchmark_block_exchange.cpp"
-                },
-                "region": {
-                  "startLine": 217,
-                  "startColumn": 13,
-                  "endLine": 217,
-                  "endColumn": 21,
-                  "charOffset": 8903,
-                  "charLength": 8,
-                  "snippet": {
-                    "text": "shuffle(",
-                    "rendered": {
-                      "text": "shuffle(",
-                      "markdown": "`shuffle(`"
-                    }
-                  },
-                  "sourceLanguage": "cpp"
-                }
-              }
-            }
-          ],
-          "properties": {
-            "DevSkimSeverity": "Important",
-            "DevSkimConfidence": "High",
-            "tags": [
-              "Cryptography.PRNG.Weak"
-            ]
-          }
-        },
         {
           "ruleId": "2099eddc-bda7-30a2-8d27-561613ceb628",
           "kind": "fail",
@@ -217,6 +177,256 @@
                   "endLine": 82,
                   "endColumn": 17,
                   "charOffset": 3158,
+                  "charLength": 8,
+                  "snippet": {
+                    "text": "shuffle(",
+                    "rendered": {
+                      "text": "shuffle(",
+                      "markdown": "`shuffle(`"
+                    }
+                  },
+                  "sourceLanguage": "cpp"
+                }
+              }
+            }
+          ],
+          "properties": {
+            "DevSkimSeverity": "Important",
+            "DevSkimConfidence": "High",
+            "tags": [
+              "Cryptography.PRNG.Weak"
+            ]
+          }
+        },
+        {
+          "ruleId": "b65046f4-1173-366a-9336-808c1f71ce8a",
+          "kind": "fail",
+          "level": "error",
+          "message": {
+            "text": "Avoid Using Weak or Non-Cryptographic Random Number Generators"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "benchmark/benchmark_device_batch_memcpy.cpp"
+                },
+                "region": {
+                  "startLine": 189,
+                  "startColumn": 9,
+                  "endLine": 189,
+                  "endColumn": 17,
+                  "charOffset": 7420,
+                  "charLength": 8,
+                  "snippet": {
+                    "text": "shuffle(",
+                    "rendered": {
+                      "text": "shuffle(",
+                      "markdown": "`shuffle(`"
+                    }
+                  },
+                  "sourceLanguage": "cpp"
+                }
+              }
+            }
+          ],
+          "properties": {
+            "DevSkimSeverity": "Important",
+            "DevSkimConfidence": "High",
+            "tags": [
+              "Cryptography.PRNG.Weak"
+            ]
+          }
+        },
+        {
+          "ruleId": "c8ec85ff-7dd1-32eb-a0db-8776ef6d88f9",
+          "kind": "fail",
+          "level": "error",
+          "message": {
+            "text": "Avoid Using Non-Cryptographic or Weak Random Number Generators"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "benchmark/benchmark_device_batch_memcpy.cpp"
+                },
+                "region": {
+                  "startLine": 85,
+                  "startColumn": 9,
+                  "endLine": 85,
+                  "endColumn": 17,
+                  "charOffset": 3280,
+                  "charLength": 8,
+                  "snippet": {
+                    "text": "shuffle(",
+                    "rendered": {
+                      "text": "shuffle(",
+                      "markdown": "`shuffle(`"
+                    }
+                  },
+                  "sourceLanguage": "cpp"
+                }
+              }
+            }
+          ],
+          "properties": {
+            "DevSkimSeverity": "Important",
+            "DevSkimConfidence": "High",
+            "tags": [
+              "Cryptography.PRNG.Weak"
+            ]
+          }
+        },
+        {
+          "ruleId": "3dfb6ffa-523f-3a97-a2f9-92c35a976262",
+          "kind": "fail",
+          "level": "note",
+          "message": {
+            "text": "Detected Vulnerability in C Function (memcpy)"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "hipcub/include/hipcub/backend/rocprim/util_type.hpp"
+                },
+                "region": {
+                  "startLine": 560,
+                  "startColumn": 8,
+                  "endLine": 560,
+                  "endColumn": 47,
+                  "charOffset": 16195,
+                  "charLength": 39,
+                  "snippet": {
+                    "text": "memcpy(&retval, &retval_bits, sizeof(T)",
+                    "rendered": {
+                      "text": "memcpy(&retval, &retval_bits, sizeof(T)",
+                      "markdown": "`memcpy(&retval, &retval_bits, sizeof(T)`"
+                    }
+                  },
+                  "sourceLanguage": "cpp"
+                }
+              }
+            }
+          ],
+          "fixes": [
+            {
+              "description": {
+                "text": "There are a number of conditions in which memcpy can introduce a vulnerability (mismatched buffer sizes, null pointers, etc.). More secure alternitives perform additional validation of the source and destination buffer"
+              },
+              "artifactChanges": [
+                {
+                  "artifactLocation": {
+                    "uri": "hipcub/include/hipcub/backend/rocprim/util_type.hpp"
+                  },
+                  "replacements": [
+                    {
+                      "deletedRegion": {
+                        "charOffset": 16195,
+                        "charLength": 39
+                      },
+                      "insertedContent": {
+                        "text": "memcpy_s(&retval, <size of &retval>,  &retval_bits,  sizeof(T)"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          "properties": {
+            "DevSkimSeverity": "BestPractice",
+            "DevSkimConfidence": "High",
+            "tags": [
+              "API.DangerousAPI.ProblematicFunction"
+            ]
+          }
+        },
+        {
+          "ruleId": "24f6eea9-fd43-3e08-952a-a68618e742b1",
+          "kind": "fail",
+          "level": "note",
+          "message": {
+            "text": "Detected Vulnerability in C Function (memcpy)"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "hipcub/include/hipcub/backend/rocprim/util_type.hpp"
+                },
+                "region": {
+                  "startLine": 568,
+                  "startColumn": 8,
+                  "endLine": 568,
+                  "endColumn": 47,
+                  "charOffset": 16403,
+                  "charLength": 39,
+                  "snippet": {
+                    "text": "memcpy(&retval, &retval_bits, sizeof(T)",
+                    "rendered": {
+                      "text": "memcpy(&retval, &retval_bits, sizeof(T)",
+                      "markdown": "`memcpy(&retval, &retval_bits, sizeof(T)`"
+                    }
+                  },
+                  "sourceLanguage": "cpp"
+                }
+              }
+            }
+          ],
+          "fixes": [
+            {
+              "description": {
+                "text": "There are a number of conditions in which memcpy can introduce a vulnerability (mismatched buffer sizes, null pointers, etc.). More secure alternitives perform additional validation of the source and destination buffer"
+              },
+              "artifactChanges": [
+                {
+                  "artifactLocation": {
+                    "uri": "hipcub/include/hipcub/backend/rocprim/util_type.hpp"
+                  },
+                  "replacements": [
+                    {
+                      "deletedRegion": {
+                        "charOffset": 16403,
+                        "charLength": 39
+                      },
+                      "insertedContent": {
+                        "text": "memcpy_s(&retval, <size of &retval>,  &retval_bits,  sizeof(T)"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          "properties": {
+            "DevSkimSeverity": "BestPractice",
+            "DevSkimConfidence": "High",
+            "tags": [
+              "API.DangerousAPI.ProblematicFunction"
+            ]
+          }
+        },
+        {
+          "ruleId": "fa710588-1c9f-3f06-905b-f25ff657576e",
+          "kind": "fail",
+          "level": "error",
+          "message": {
+            "text": "Avoid Using Non-Cryptographic or Weak Random Number Generators"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "benchmark/benchmark_block_exchange.cpp"
+                },
+                "region": {
+                  "startLine": 217,
+                  "startColumn": 13,
+                  "endLine": 217,
+                  "endColumn": 21,
+                  "charOffset": 8903,
                   "charLength": 8,
                   "snippet": {
                     "text": "shuffle(",
@@ -300,216 +510,6 @@
             "DevSkimConfidence": "High",
             "tags": [
               "API.DangerousAPI.ProblematicFunction"
-            ]
-          }
-        },
-        {
-          "ruleId": "24f6eea9-fd43-3e08-952a-a68618e742b1",
-          "kind": "fail",
-          "level": "note",
-          "message": {
-            "text": "Detected Vulnerability in C Function (memcpy)"
-          },
-          "locations": [
-            {
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": "hipcub/include/hipcub/backend/rocprim/util_type.hpp"
-                },
-                "region": {
-                  "startLine": 568,
-                  "startColumn": 8,
-                  "endLine": 568,
-                  "endColumn": 47,
-                  "charOffset": 16403,
-                  "charLength": 39,
-                  "snippet": {
-                    "text": "memcpy(&retval, &retval_bits, sizeof(T)",
-                    "rendered": {
-                      "text": "memcpy(&retval, &retval_bits, sizeof(T)",
-                      "markdown": "`memcpy(&retval, &retval_bits, sizeof(T)`"
-                    }
-                  },
-                  "sourceLanguage": "cpp"
-                }
-              }
-            }
-          ],
-          "fixes": [
-            {
-              "description": {
-                "text": "There are a number of conditions in which memcpy can introduce a vulnerability (mismatched buffer sizes, null pointers, etc.). More secure alternitives perform additional validation of the source and destination buffer"
-              },
-              "artifactChanges": [
-                {
-                  "artifactLocation": {
-                    "uri": "hipcub/include/hipcub/backend/rocprim/util_type.hpp"
-                  },
-                  "replacements": [
-                    {
-                      "deletedRegion": {
-                        "charOffset": 16403,
-                        "charLength": 39
-                      },
-                      "insertedContent": {
-                        "text": "memcpy_s(&retval, <size of &retval>,  &retval_bits,  sizeof(T)"
-                      }
-                    }
-                  ]
-                }
-              ]
-            }
-          ],
-          "properties": {
-            "DevSkimSeverity": "BestPractice",
-            "DevSkimConfidence": "High",
-            "tags": [
-              "API.DangerousAPI.ProblematicFunction"
-            ]
-          }
-        },
-        {
-          "ruleId": "3dfb6ffa-523f-3a97-a2f9-92c35a976262",
-          "kind": "fail",
-          "level": "note",
-          "message": {
-            "text": "Detected Vulnerability in C Function (memcpy)"
-          },
-          "locations": [
-            {
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": "hipcub/include/hipcub/backend/rocprim/util_type.hpp"
-                },
-                "region": {
-                  "startLine": 560,
-                  "startColumn": 8,
-                  "endLine": 560,
-                  "endColumn": 47,
-                  "charOffset": 16195,
-                  "charLength": 39,
-                  "snippet": {
-                    "text": "memcpy(&retval, &retval_bits, sizeof(T)",
-                    "rendered": {
-                      "text": "memcpy(&retval, &retval_bits, sizeof(T)",
-                      "markdown": "`memcpy(&retval, &retval_bits, sizeof(T)`"
-                    }
-                  },
-                  "sourceLanguage": "cpp"
-                }
-              }
-            }
-          ],
-          "fixes": [
-            {
-              "description": {
-                "text": "There are a number of conditions in which memcpy can introduce a vulnerability (mismatched buffer sizes, null pointers, etc.). More secure alternitives perform additional validation of the source and destination buffer"
-              },
-              "artifactChanges": [
-                {
-                  "artifactLocation": {
-                    "uri": "hipcub/include/hipcub/backend/rocprim/util_type.hpp"
-                  },
-                  "replacements": [
-                    {
-                      "deletedRegion": {
-                        "charOffset": 16195,
-                        "charLength": 39
-                      },
-                      "insertedContent": {
-                        "text": "memcpy_s(&retval, <size of &retval>,  &retval_bits,  sizeof(T)"
-                      }
-                    }
-                  ]
-                }
-              ]
-            }
-          ],
-          "properties": {
-            "DevSkimSeverity": "BestPractice",
-            "DevSkimConfidence": "High",
-            "tags": [
-              "API.DangerousAPI.ProblematicFunction"
-            ]
-          }
-        },
-        {
-          "ruleId": "b65046f4-1173-366a-9336-808c1f71ce8a",
-          "kind": "fail",
-          "level": "error",
-          "message": {
-            "text": "Avoid Using Weak or Non-Cryptographic Random Number Generators"
-          },
-          "locations": [
-            {
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": "benchmark/benchmark_device_batch_memcpy.cpp"
-                },
-                "region": {
-                  "startLine": 189,
-                  "startColumn": 9,
-                  "endLine": 189,
-                  "endColumn": 17,
-                  "charOffset": 7420,
-                  "charLength": 8,
-                  "snippet": {
-                    "text": "shuffle(",
-                    "rendered": {
-                      "text": "shuffle(",
-                      "markdown": "`shuffle(`"
-                    }
-                  },
-                  "sourceLanguage": "cpp"
-                }
-              }
-            }
-          ],
-          "properties": {
-            "DevSkimSeverity": "Important",
-            "DevSkimConfidence": "High",
-            "tags": [
-              "Cryptography.PRNG.Weak"
-            ]
-          }
-        },
-        {
-          "ruleId": "c8ec85ff-7dd1-32eb-a0db-8776ef6d88f9",
-          "kind": "fail",
-          "level": "error",
-          "message": {
-            "text": "Avoid Using Non-Cryptographic or Weak Random Number Generators"
-          },
-          "locations": [
-            {
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": "benchmark/benchmark_device_batch_memcpy.cpp"
-                },
-                "region": {
-                  "startLine": 85,
-                  "startColumn": 9,
-                  "endLine": 85,
-                  "endColumn": 17,
-                  "charOffset": 3280,
-                  "charLength": 8,
-                  "snippet": {
-                    "text": "shuffle(",
-                    "rendered": {
-                      "text": "shuffle(",
-                      "markdown": "`shuffle(`"
-                    }
-                  },
-                  "sourceLanguage": "cpp"
-                }
-              }
-            }
-          ],
-          "properties": {
-            "DevSkimSeverity": "Important",
-            "DevSkimConfidence": "High",
-            "tags": [
-              "Cryptography.PRNG.Weak"
             ]
           }
         }
